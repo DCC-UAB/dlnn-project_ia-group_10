@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+captions.txt
+Images
+Feature maps
+environment_copy.yml
