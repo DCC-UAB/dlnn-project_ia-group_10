@@ -14,7 +14,7 @@ def train(model,dataloader,epochs,lr):
             img = data["x"].to(device)
             caption = data["y_tokenized"].to(device).squeeze(0)
             caption_logits = model(img=img,train=True,caption=caption)
-            loss = entropy_loss(F.softmax(caption_logits[0]),caption[0])
+            loss = entropy_loss(F.softmax(caption_logits[0],dim=-1),caption[0])
             loss.backward()
             optimizer.step()
             print(f"epoch: {epoch} || batch:{batch} || loss:{loss}")
