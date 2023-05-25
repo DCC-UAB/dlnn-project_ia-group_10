@@ -19,8 +19,8 @@ import numpy as np
 
 ###SCRIPT CONFIG!####
 device = "cuda" #r u running cuda my boy? or mps? :D
-num_epochs = 50
-batch_size = 5
+num_epochs = 5
+batch_size = 10
 COSINE_SIM_IMPORTANCE = 0.8
 print("Have you runned wandb login?? OK. go aheadd...")
 #####################
@@ -40,8 +40,10 @@ def nested_dict(original_dict):
 
 #load datasets
 with open('/home/xnmaster/dlnn-project_ia-group_10/dataset/train_dataset.pkl', 'rb') as inp:
+#with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/train_dataset.pkl', 'rb') as inp:
     train_dataset = pickle.load(inp)
 with open('/home/xnmaster/dlnn-project_ia-group_10/dataset/val_dataset.pkl', 'rb') as inp:
+#with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/val_dataset.pkl', 'rb') as inp:
     val_dataset = pickle.load(inp)
 
 #create dataloaders
@@ -90,7 +92,8 @@ def train(config: Dict = None):
         model = LSTMModel(input_dim=512,embedding_layer=emb_layer,hidden_dim=config["hidden_size"],n_layers=config['num_layers'])
         model.init_weights()
         model.to(device)
-
+        wandb.watch(model, log='gradients',log_freq=1) #log gradients
+        
         #define optimizer for this run
         optimizer_config = config["optimizer"]
         if optimizer_config["type"] == 'adam':
@@ -147,14 +150,16 @@ def train(config: Dict = None):
                 #change ref to join batch and sequence dim
                 out = out.view(out.shape[0]*out.shape[1],out.shape[2])
                 loss = loss_funct(out,ref)
-                loss.backward()
-                optimizer.step()    
                 training_losses.append(loss.item())
                 progress_bar.set_postfix({'Batch Loss': loss.item()})
                 average_training_loss = sum(training_losses) / len(training_losses)
-                wandb.log({'Train_Batch_Loss': average_training_loss})
-
-            model.eval()  
+                wandb.log({'perbatch_Train_Epoch_Loss': average_training_loss})
+            
+                loss.backward()
+                optimizer.step()    
+            
+            wandb.log({'Train_Epoch_Loss': average_training_loss})
+            model.eval()
             with torch.no_grad():  
                 validation_losses = [] # renamed from val_losses
                 for X1,X2,caption in tqdm(val_dataloader, desc='Validation'):
@@ -167,16 +172,16 @@ def train(config: Dict = None):
                     validation_losses.append(loss.item())
                     average_validation_loss = sum(validation_losses) / len(validation_losses) # renamed from avg_val_loss
                     #average_validation_loss = np.power(dataset.denormalize_values(np.sqrt(average_validation_loss),scaler),2)
-                    wandb.log({'Validation_Batch_Loss': average_validation_loss})
-
-            if average_training_loss < best_loss:
+                    wandb.log({'perbatch_Validation_Epoch_Loss': average_validation_loss})
+            
+            wandb.log({'Validation_Epoch_Loss': average_validation_loss})
+            if average_validation_loss < best_loss:
                 best_loss = average_training_loss
-                torch.save(model.state_dict(), 'models/LSTM&resnet18/LSTM&resnet18.pt')
+                torch.save(model.state_dict(), 'LSTM&resnet18.pt')
                 wandb.save('LSTM&resnet18.pt')
                 print(f"Model saved at {'LSTM&resnet18.pt'}")
 
         wandb.finish()
-
 
 #run the agent
 wandb.agent(sweep_id, function=train)
