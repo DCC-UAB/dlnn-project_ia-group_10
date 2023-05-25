@@ -6,7 +6,6 @@ import wandb
 import yaml
 from typing import Dict
 import gensim.downloader as api
-import tensorflow_hub as hub
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 
@@ -18,15 +17,10 @@ from icecream import ic
 
 import numpy as np
 
-import os
-
-os.environ["TOKENIZERS_PARALLELISM"] = "False"
-
-
 ###SCRIPT CONFIG!####
-device = "cpu" #r u running cuda my boy? or mps? :D
-num_epochs = 80
-batch_size = 1
+device = "cuda" #r u running cuda my boy? or mps? :D
+num_epochs = 50
+batch_size = 5
 COSINE_SIM_IMPORTANCE = 0.8
 print("Have you runned wandb login?? OK. go aheadd...")
 #####################
@@ -45,9 +39,9 @@ def nested_dict(original_dict):
     return nested_dict
 
 #load datasets
-with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/train_dataset.pkl', 'rb') as inp:
+with open('/home/xnmaster/dlnn-project_ia-group_10/dataset/train_dataset.pkl', 'rb') as inp:
     train_dataset = pickle.load(inp)
-with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/val_dataset.pkl', 'rb') as inp:
+with open('/home/xnmaster/dlnn-project_ia-group_10/dataset/val_dataset.pkl', 'rb') as inp:
     val_dataset = pickle.load(inp)
 
 #create dataloaders
@@ -63,7 +57,7 @@ with open('hyperparams.yaml', 'r') as stream:
         print(exc)
 
 #create sweep
-sweep_id = wandb.sweep(sweep_config, project="energy_project_uab")
+sweep_id = wandb.sweep(sweep_config, project="dl2023_imagecaptioning")
 
 #load word2vec pretrained embedding layer
 word2vec_embb = api.load('glove-wiki-gigaword-50')
@@ -139,9 +133,8 @@ def train(config: Dict = None):
             model.train()
             training_losses = [] # renamed from epoch_losses
             progress_bar = tqdm(enumerate(train_dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}")
-            
+
             for batch,(X1,X2,caption) in progress_bar:
-            #for batch,(X1,X2) in enumerate(train_dataloader):
                 X1 = X1.to(device) 
                 X2 = X2.to(device)
                 out,h,c = model(X1,X2)
@@ -153,16 +146,13 @@ def train(config: Dict = None):
                 #same for the out logits
                 #change ref to join batch and sequence dim
                 out = out.view(out.shape[0]*out.shape[1],out.shape[2])
-                
                 loss = loss_funct(out,ref)
                 loss.backward()
                 optimizer.step()    
                 training_losses.append(loss.item())
-                #progress_bar.set_postfix({'Batch Loss': loss.item()})
-
-            average_training_loss = sum(training_losses) / len(training_losses) # renamed from avg_loss
-            #average_training_loss = np.power(dataset.denormalize_values(np.sqrt(average_training_loss),scaler),2)
-            wandb.log({'Train_Epoch_Loss': average_training_loss})
+                progress_bar.set_postfix({'Batch Loss': loss.item()})
+                average_training_loss = sum(training_losses) / len(training_losses)
+                wandb.log({'Train_Batch_Loss': average_training_loss})
 
             model.eval()  
             with torch.no_grad():  
@@ -170,19 +160,14 @@ def train(config: Dict = None):
                 for X1,X2,caption in tqdm(val_dataloader, desc='Validation'):
                     X1 = X1.to(device) 
                     X2 = X2.to(device)
-
                     out,h,c = model(X1,X2)
-
                     ref = ref.view(ref.shape[0]*ref.shape[1])
                     out = out.view(out.shape[0]*out.shape[1],out.shape[2])
-                    
                     loss = loss_funct(out,ref)
-
                     validation_losses.append(loss.item())
-
-                average_validation_loss = sum(validation_losses) / len(validation_losses) # renamed from avg_val_loss
-                #average_validation_loss = np.power(dataset.denormalize_values(np.sqrt(average_validation_loss),scaler),2)
-                wandb.log({'Validation_Epoch_Loss': average_validation_loss})
+                    average_validation_loss = sum(validation_losses) / len(validation_losses) # renamed from avg_val_loss
+                    #average_validation_loss = np.power(dataset.denormalize_values(np.sqrt(average_validation_loss),scaler),2)
+                    wandb.log({'Validation_Batch_Loss': average_validation_loss})
 
             if average_training_loss < best_loss:
                 best_loss = average_training_loss
@@ -195,3 +180,4 @@ def train(config: Dict = None):
 
 #run the agent
 wandb.agent(sweep_id, function=train)
+
