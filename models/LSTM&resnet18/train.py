@@ -129,14 +129,14 @@ def train(config: Dict = None):
         #define loss for this run
         if config["loss_funct"] == "crossentropy":
             def loss_funct(ref,pred): 
-                ref = ref.type(torch.LongTensor).to(device)  # Convert ref to torch.LongTensor and move to device
-                pred = pred.type(torch.LongTensor).to(device)  # Convert pred to torch.LongTensor and move to device
+                ref = ref.to(torch.cuda.LongTensor)  
+                pred = pred.to(torch.cuda.LongTensor) 
                 loss = cross_entrop(pred,ref)
                 return loss
         else:
             def loss_funct(ref,pred):
-                ref = ref.type(torch.LongTensor).to(device)  # Convert ref to torch.LongTensor and move to device
-                pred = pred.type(torch.LongTensor).to(device)  # Convert pred to torch.LongTensor and move to device
+                ref = ref.to(torch.cuda.LongTensor) 
+                pred = pred.to(torch.cuda.LongTensor) 
                 loss1 = cross_entrop(pred,ref)
 
                 pred_keys = torch.argmax(pred,axis=-1)
@@ -168,17 +168,15 @@ def train(config: Dict = None):
             progress_bar = tqdm(enumerate(train_dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}")
             
             for batch,(X1,X2,caption) in progress_bar:
-            #for batch,(X1,X2) in enumerate(train_dataloader):
                 optimizer.zero_grad()
                 
-                X1 = X1.type(torch.LongTensor) .to(device)
-                X2 = X2.type(torch.LongTensor).to(device)
+                X1 = X1.to(device)
+                X2 = X2.to(device)
                 out,h,c = model(X1,X2)
                 
                 ref = X2
                 #change ref to join batch and sequence dim
                 ref = ref.view(ref.shape[0]*ref.shape[1])
-
 
                 #same for the out logits
                 #change ref to join batch and sequence dim
@@ -197,14 +195,18 @@ def train(config: Dict = None):
             with torch.no_grad():  
                 validation_losses = [] # renamed from val_losses
                 for X1,X2,caption in tqdm(val_dataloader, desc='Validation'):
-                    X1 = X1.type(torch.LongTensor).to(device)
-                    X2 = X2.type(torch.LongTensor).to(device)
-
+                    X1 = X1.to(device)
+                    X2 = X2.to(device)
                     out,h,c = model(X1,X2)
+                    
                     ref = X2
-
+                    #change ref to join batch and sequence dim
                     ref = ref.view(ref.shape[0]*ref.shape[1])
+
+                    #same for the out logits
+                    #change ref to join batch and sequence dim
                     out = out.view(out.shape[0]*out.shape[1],out.shape[2])
+
                     
                     loss = loss_funct(ref,out)
 
