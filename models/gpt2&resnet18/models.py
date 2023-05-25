@@ -26,23 +26,21 @@ class caption_generator(torch.nn.Module):
     def __init__(self,gpt2,resnet18,tokens_per_img,batch_size):
         super(caption_generator, self).__init__()
         self.gpt2 = gpt2
+        self.gpt2.requires_grad = False
         self.config = self.gpt2.config
         self.hacky_embedding = hacky_embedding(gpt2,batch_size).train()
         self.gpt2.transformer.wte = self.hacky_embedding #replace embedding layer with our own
     
         self.resnet18 = resnet18
-
+        self.resnet18.requires_grad = False
         self.TOKENS_PER_IMG = tokens_per_img
 
         #layers that convert the img features into embedding 
         self.imgfeat_to_gpt2emb = nn.Sequential(
-            nn.Linear(RESNET18_EMB_DIM,3000),
+            nn.Linear(RESNET18_EMB_DIM,10000),
             nn.ReLU(),
-            nn.Linear(3000,1000*tokens_per_img),
-            nn.ReLU(),
-            nn.Linear(1000*tokens_per_img,1000*tokens_per_img),
-            nn.ReLU(),
-            nn.Linear(1000*tokens_per_img,tokens_per_img*GPT2_HIDDEN_DIM),
+            nn.Linear(10000,500*tokens_per_img),
+            nn.Linear(500*tokens_per_img,tokens_per_img*GPT2_HIDDEN_DIM),
             nn.ReLU(), #should I have this layer here? What is the range of values in gpt2 emb layer?
         )
     
