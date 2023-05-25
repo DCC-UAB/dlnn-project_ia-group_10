@@ -1,0 +1,34 @@
+{
+    "os": "macOS-12.6-arm64-arm-64bit",
+    "python": "3.10.9",
+    "heartbeatAt": "2023-05-24T23:09:43.694531",
+    "startedAt": "2023-05-24T23:09:42.594980",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/models/LSTM&resnet18/train.py",
+    "codePath": "models/LSTM&resnet18/train.py",
+    "git": {
+        "remote": "https://github.com/DCC-UAB/dlnn-project_ia-group_10.git",
+        "commit": "c00b74f9aa1645235367bbc4a39d9bf2413353a2"
+    },
+    "email": null,
+    "root": "/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10",
+    "host": "Joseps-MacBook-Air.local",
+    "username": "josepsmachine",
+    "executable": "/Users/josepsmachine/miniforge3/envs/ML/bin/python3",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "disk": {
+        "total": 460.4317207336426,
+        "used": 383.53199768066406
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 8.0
+    }
+}

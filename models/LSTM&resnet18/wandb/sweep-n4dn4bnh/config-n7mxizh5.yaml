@@ -1,0 +1,14 @@
+wandb_version: 1
+
+embedding_layer:
+  value: learnt
+hidden_size:
+  value: 30
+loss_funct:
+  value: CrssEntrop+UnivSntcEnc_cosDist
+num_layers:
+  value: 1
+optimizer:
+  value:
+    lr: 0.0018856959489537565
+    type: adam

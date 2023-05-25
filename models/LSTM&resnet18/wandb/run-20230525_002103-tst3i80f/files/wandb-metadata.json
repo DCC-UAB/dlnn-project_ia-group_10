@@ -1,0 +1,33 @@
+{
+    "os": "macOS-12.6-arm64-arm-64bit",
+    "python": "3.10.9",
+    "heartbeatAt": "2023-05-24T22:21:03.808751",
+    "startedAt": "2023-05-24T22:21:03.095332",
+    "docker": null,
+    "cuda": null,
+    "args": null,
+    "state": "running",
+    "program": "models/LSTM&resnet18/debugging-jvsc-45c1995d-9201-42b8-901e-98393ccb34b5b90d0b07-108d-4ef7-b422-dc805db25982.ipynb",
+    "root": "/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10",
+    "git": {
+        "remote": "https://github.com/DCC-UAB/dlnn-project_ia-group_10.git",
+        "commit": "c00b74f9aa1645235367bbc4a39d9bf2413353a2"
+    },
+    "email": null,
+    "host": "Joseps-MacBook-Air.local",
+    "username": "josepsmachine",
+    "executable": "/Users/josepsmachine/miniforge3/envs/ML/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "disk": {
+        "total": 460.4317207336426,
+        "used": 382.4837951660156
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 8.0
+    }
+}

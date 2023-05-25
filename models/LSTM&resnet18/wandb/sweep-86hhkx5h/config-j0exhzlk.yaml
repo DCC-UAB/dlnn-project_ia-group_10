@@ -1,0 +1,14 @@
+wandb_version: 1
+
+embedding_layer:
+  value: word2vec
+hidden_size:
+  value: 30
+loss_funct:
+  value: CrssEntrop+UnivSntcEnc_cosDist
+num_layers:
+  value: 1
+optimizer:
+  value:
+    lr: 0.002568818237253793
+    type: adam
