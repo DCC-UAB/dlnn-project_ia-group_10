@@ -1,4 +1,4 @@
-from models import LSTMModel
+from models import LSTMModel , LSTMModel_seeOnce
 from dataset import ImageCaptionDataset
 import pickle
 from torch.utils.data import DataLoader
@@ -17,10 +17,15 @@ from icecream import ic
 
 import numpy as np
 
+import os
+
+os.environ["TOKENIZERS_PARALLELISM"] = "False"
+
+
 ###SCRIPT CONFIG!####
 device = "cuda" #r u running cuda my boy? or mps? :D
-num_epochs = 5
-batch_size = 10
+num_epochs = 50
+batch_size = 300
 COSINE_SIM_IMPORTANCE = 0.8
 print("Have you runned wandb login?? OK. go aheadd...")
 #####################
@@ -39,16 +44,18 @@ def nested_dict(original_dict):
     return nested_dict
 
 #load datasets
+#load datasets
 with open('/home/xnmaster/dlnn-project_ia-group_10/dataset/train_dataset.pkl', 'rb') as inp:
-#with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/train_dataset.pkl', 'rb') as inp:
     train_dataset = pickle.load(inp)
 with open('/home/xnmaster/dlnn-project_ia-group_10/dataset/val_dataset.pkl', 'rb') as inp:
-#with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/val_dataset.pkl', 'rb') as inp:
     val_dataset = pickle.load(inp)
+#with open('/Users/josepsmachine/Documents/UNI/DL/dlnn-project_ia-group_10/dataset/debug_dataset.pkl', 'rb') as inp:
+#    debug_dataset = pickle.load(inp)
 
 #create dataloaders
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+#debug_dataloader = DataLoader(debug_dataset, batch_size=1, shuffle=False)
 
 #load hyperparamaters to do grid search on
 #setup wandb stuff
@@ -59,15 +66,23 @@ with open('hyperparams.yaml', 'r') as stream:
         print(exc)
 
 #create sweep
-sweep_id = wandb.sweep(sweep_config, project="dl2023_imagecaptioning")
+sweep_id = wandb.sweep(sweep_config, project="energy_project_uab")
 
 #load word2vec pretrained embedding layer
-word2vec_embb = api.load('glove-wiki-gigaword-50')
-vocabulary = word2vec_embb.index_to_key #save vocabulary list
+word2vec_emb = api.load('word2vec-google-news-300')
+word2vec_emb = torch.LongTensor(word2vec_emb.vectors)
 
-word2vec_embb = torch.FloatTensor(word2vec_embb.vectors)
-word2vec_embb = nn.Embedding.from_pretrained(word2vec_embb)
-word2vec_embb.requires_grad_ = False #freeze word2vec embeddding layer
+#import vocabulary to word2vec indexes that we know
+with open('vocabidx2word2vecidx.pkl', 'rb') as inp:
+    vocabidx2word2vecidx = pickle.load(inp)
+
+with open('vocabulary.pkl', 'rb') as inp:
+    vocabulary = pickle.load(inp)
+
+word2vec_emb = word2vec_emb[vocabidx2word2vecidx]
+
+word2vec_emb = nn.Embedding.from_pretrained(word2vec_emb)
+word2vec_emb.requires_grad_ = False #freeze word2vec embeddding layer
 
 #load universal sentence encoder to define our own loss function
 sntc_enc = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -76,24 +91,36 @@ sntc_enc = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 cross_entrop = nn.CrossEntropyLoss()
 
 def train(config: Dict = None):
-    with wandb.init(config, project="dl2023_imagecaptioning", entity = "dl2023team"):
+    with wandb.init(config, project="dl2023_imagecaptioning", entity = "dl2023team") as run:
+        #Set run name
         config = wandb.config
         config = nested_dict(config)
+
+        ##set name
+        if config["see_once"]:
+            run.name = f"LSTM_seeOnce_{wandb.run.id}"
+        else:
+            run.name= f"LSTM_residuals_{wandb.run.id}"
         
-        #define model for this run
-        with open('aux.pkl', 'rb') as f:
-            config = pickle.load(f)
+        print("name set to: ",wandb.run.name)
+        #set embedding layer
         if config["embedding_layer"] == "word2vec":
-            emb_layer = word2vec_embb
+                emb_layer = word2vec_emb
         else:
             #the learnt embedding layer will have the same vocab size as word2vec for comparaison reasons.
-            emb_layer = nn.Embedding(num_embeddings=word2vec_embb.weight.shape[0], embedding_dim=config["hidden_size"])
+            emb_layer = nn.Embedding(num_embeddings=word2vec_emb.weight.shape[0], embedding_dim=config["hidden_size"])
 
-        model = LSTMModel(input_dim=512,embedding_layer=emb_layer,hidden_dim=config["hidden_size"],n_layers=config['num_layers'])
+        if config["see_once"]: #if we want the model with residual at each step or not
+            model = LSTMModel_seeOnce(input_dim=512,embedding_layer=emb_layer,hidden_dim=config["hidden_size"],n_layers=config['num_layers'])
+        else:
+            model = LSTMModel(input_dim=512,embedding_layer=emb_layer,hidden_dim=config["hidden_size"],n_layers=config['num_layers'])
+        
+        #print(config["see_once"])
+        #count_parameters(model)
+        
         model.init_weights()
         model.to(device)
-        wandb.watch(model, log='gradients',log_freq=1) #log gradients
-        
+
         #define optimizer for this run
         optimizer_config = config["optimizer"]
         if optimizer_config["type"] == 'adam':
@@ -101,20 +128,23 @@ def train(config: Dict = None):
         
         #define loss for this run
         if config["loss_funct"] == "crossentropy":
-            def loss_funct(pred,ref): 
-                ref = ref.long()
+            def loss_funct(ref,pred): 
+                ref = ref.to(torch.cuda.LongTensor)  
+                pred = pred.to(torch.cuda.LongTensor) 
                 loss = cross_entrop(pred,ref)
                 return loss
         else:
-            def loss_funct(pred,ref):
-                ref = ref.long()
+            def loss_funct(ref,pred):
+                ref = ref.to(torch.cuda.LongTensor) 
+                pred = pred.to(torch.cuda.LongTensor) 
                 loss1 = cross_entrop(pred,ref)
 
                 pred_keys = torch.argmax(pred,axis=-1)
                 
                 pred_sntc = ""
                 target_sntc = ""
-                for batch_ref,batch_pred in zip(ref.int(),pred_keys):
+                
+                for batch_ref,batch_pred in zip(ref,pred_keys):
                     pred_sntc += " " + vocabulary[batch_pred.item()]
                     target_sntc += " " + vocabulary[batch_ref.item()]
 
@@ -124,7 +154,7 @@ def train(config: Dict = None):
 
                 embeddings = sntc_enc.encode([pred_sntc, target_sntc])
                 similarity = cosine_similarity(embeddings[0].reshape(1, -1), embeddings[1].reshape(1, -1))
-                loss = similarity[0][0]*COSINE_SIM_IMPORTANCE + loss1*(1-COSINE_SIM_IMPORTANCE)
+                loss = 1/(similarity[0][0])*COSINE_SIM_IMPORTANCE + loss1*(1-COSINE_SIM_IMPORTANCE)
                 return loss
 
         ############
@@ -136,53 +166,63 @@ def train(config: Dict = None):
             model.train()
             training_losses = [] # renamed from epoch_losses
             progress_bar = tqdm(enumerate(train_dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}")
-
+            
             for batch,(X1,X2,caption) in progress_bar:
-                X1 = X1.to(device) 
+                optimizer.zero_grad()
+                
+                X1 = X1.to(device)
                 X2 = X2.to(device)
                 out,h,c = model(X1,X2)
-                #pred_keys = torch.argmax(out,axis=-1)
-                ref = X2.float()
+                
+                ref = X2
                 #change ref to join batch and sequence dim
                 ref = ref.view(ref.shape[0]*ref.shape[1])
 
                 #same for the out logits
                 #change ref to join batch and sequence dim
                 out = out.view(out.shape[0]*out.shape[1],out.shape[2])
-                loss = loss_funct(out,ref)
-                training_losses.append(loss.item())
-                progress_bar.set_postfix({'Batch Loss': loss.item()})
-                average_training_loss = sum(training_losses) / len(training_losses)
-                wandb.log({'perbatch_Train_Epoch_Loss': average_training_loss})
-            
+                
+                loss = loss_funct(ref,out)
                 loss.backward()
                 optimizer.step()    
-            
+                training_losses.append(loss.item())
+                progress_bar.set_postfix({'Batch Loss': loss.item()})
+
+            average_training_loss = sum(training_losses) / len(training_losses) # renamed from avg_loss
             wandb.log({'Train_Epoch_Loss': average_training_loss})
-            model.eval()
+
+            model.eval()  
             with torch.no_grad():  
                 validation_losses = [] # renamed from val_losses
                 for X1,X2,caption in tqdm(val_dataloader, desc='Validation'):
-                    X1 = X1.to(device) 
+                    X1 = X1.to(device)
                     X2 = X2.to(device)
                     out,h,c = model(X1,X2)
+                    
+                    ref = X2
+                    #change ref to join batch and sequence dim
                     ref = ref.view(ref.shape[0]*ref.shape[1])
+
+                    #same for the out logits
+                    #change ref to join batch and sequence dim
                     out = out.view(out.shape[0]*out.shape[1],out.shape[2])
-                    loss = loss_funct(out,ref)
+
+                    
+                    loss = loss_funct(ref,out)
+
                     validation_losses.append(loss.item())
-                    average_validation_loss = sum(validation_losses) / len(validation_losses) # renamed from avg_val_loss
-                    #average_validation_loss = np.power(dataset.denormalize_values(np.sqrt(average_validation_loss),scaler),2)
-                    wandb.log({'perbatch_Validation_Epoch_Loss': average_validation_loss})
-            
-            wandb.log({'Validation_Epoch_Loss': average_validation_loss})
-            if average_validation_loss < best_loss:
+
+                average_validation_loss = sum(validation_losses) / len(validation_losses) # renamed from avg_val_loss
+                wandb.log({'Validation_Epoch_Loss': average_validation_loss})
+
+            if average_training_loss < best_loss:
                 best_loss = average_training_loss
-                torch.save(model.state_dict(), 'LSTM&resnet18.pt')
-                wandb.save('LSTM&resnet18.pt')
-                print(f"Model saved at {'LSTM&resnet18.pt'}")
+                torch.save(model.state_dict(), f'{wandb.run.name}.pt')
+                wandb.save(f'{wandb.run.name}.pt')
+                print(f"Model saved at {'{run.name}.pt'}")
 
         wandb.finish()
 
-#run the agent
+
 wandb.agent(sweep_id, function=train)
 

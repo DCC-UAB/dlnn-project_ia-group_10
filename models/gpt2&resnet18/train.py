@@ -5,6 +5,7 @@ import torch
 device = "mps"
 
 def train(model,dataloader,epochs,lr):
+    ref_loss = float("inf")
     entropy_loss = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     for epoch in range(epochs):
@@ -18,3 +19,6 @@ def train(model,dataloader,epochs,lr):
             loss.backward()
             optimizer.step()
             print(f"epoch: {epoch} || batch:{batch} || loss:{loss}")
+            if loss.item() < ref_loss:
+                ref_loss = loss.item()
+                torch.save(model.state_dict(), 'gpt2&resnet18.pt')
