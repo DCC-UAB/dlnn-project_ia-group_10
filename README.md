@@ -11,7 +11,7 @@ Our project focuses on implementing a CNN-RNN architecture for image captioning.
 ## Code structure
 Our code follows a structured organization to ensure clarity and maintainability. The project structure is as follows:
 
-data/: This folder contains the dataset or data preprocessing scripts.
+'data/:' This folder contains the dataset or data preprocessing scripts.
 models/: This folder contains the implementation of the CNN and RNN models.
 utils/: This folder contains utility functions for data processing, evaluation metrics, etc.
 train.py: This script is used to train the image captioning model.
