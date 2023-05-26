@@ -66,7 +66,7 @@ with open('hyperparams.yaml', 'r') as stream:
         print(exc)
 
 #create sweep
-sweep_id = wandb.sweep(sweep_config, project="dlnn-project_ia-group_10")
+#sweep_id = wandb.sweep(sweep_config, project="dlnn-project_ia-group_10")
 
 #load word2vec pretrained embedding layer
 word2vec_emb = api.load('word2vec-google-news-300')
@@ -202,5 +202,5 @@ def train(config: Dict = None):
         wandb.finish()
 
 
-wandb.agent(sweep_id, function=train)
+wandb.agent("ep69a0wy", function=train)
 

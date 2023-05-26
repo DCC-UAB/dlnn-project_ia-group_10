@@ -4,6 +4,8 @@ metric:
   goal: minimize
 
 parameters:
+  dropout: 
+    values: [0.25]
   see_once:
     values: [True,False]
   loss_funct:
@@ -11,7 +13,7 @@ parameters:
   embedding_layer: 
     values: [word2vec,learnt]
   hidden_size:
-    values: [30,300,600]
+    values: [3,6,30,300]
   num_layers:
     values: [1,3]
   optimizer:
