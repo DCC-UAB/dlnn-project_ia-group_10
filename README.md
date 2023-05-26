@@ -41,7 +41,7 @@ python main.py
 - Put your name here
 - Júlia Garcia Torné (1630382@uab.cat)
 
-Xarxes Neuronals i Aprenentatge Profund
+Xarxes Neuronals i Aprenentatge Profund,
 Grau de Artificial Intelligence, 
 UAB, 2023
 
