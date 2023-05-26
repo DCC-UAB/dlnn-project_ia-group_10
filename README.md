@@ -45,6 +45,3 @@ Xarxes Neuronals i Aprenentatge Profund
 Grau de Artificial Intelligence, 
 UAB, 2023
 
-<font color="#FF91AF">Neural Networks and Deep Learning Group</font>
-Degree in <font color="#FF69B4">Artificial Intelligence</font>
-<font color="#FF69B4">UAB, 2023</font>
