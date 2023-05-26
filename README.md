@@ -11,12 +11,14 @@ Our project focuses on implementing a CNN-RNN architecture for image captioning.
 ## Code structure
 Our code follows a structured organization to ensure clarity and maintainability. The project structure is as follows:
 
-'data/:' This folder contains the dataset or data preprocessing scripts.
-models/: This folder contains the implementation of the CNN and RNN models.
-utils/: This folder contains utility functions for data processing, evaluation metrics, etc.
-train.py: This script is used to train the image captioning model.
-evaluate.py: This script is used to evaluate the trained model on test data.
-demo.ipynb: This Jupyter Notebook provides a step-by-step demonstration of the image captioning process.
+
+- `data/`: This directory contains the dataset or data preprocessing scripts.
+- `models/`: This directory contains the implementation of the ResNet18 (CNN) and ALSTM (RNN) models.
+- `utils/`: This directory includes utility functions for data processing, evaluation metrics, etc.
+- `train.py`: This script is used to train the image captioning model.
+- `evaluate.py`: This script is used to evaluate the trained model on test data.
+- `demo.ipynb`: This Jupyter Notebook provides a step-by-step demonstration of the image captioning process.
+
 
 ## Example Code
 The given code is a simple CNN example training on the MNIST dataset. It shows how to set up the [Weights & Biases](https://wandb.ai/site)  package to monitor how your network is learning, or not.
