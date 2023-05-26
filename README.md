@@ -11,7 +11,6 @@ Our project focuses on implementing a CNN-RNN architecture for image captioning.
 ## Code structure
 Our code follows a structured organization to ensure clarity and maintainability. The project structure is as follows:
 
-
 - `data/`: This directory contains the datasets.......
 - `models/`: This directory contains....
 - `utils/`: This directory includes utility functions for data processing, evaluation metrics, etc...
@@ -22,6 +21,8 @@ Our code follows a structured organization to ensure clarity and maintainability
   we should modify this, i'm just making it look good :)
 
 ## Example Code
+
+we also need to change this:
 The given code is a simple CNN example training on the MNIST dataset. It shows how to set up the [Weights & Biases](https://wandb.ai/site)  package to monitor how your network is learning, or not.
 
 Before running the code you have to create a local environment with conda and activate it. The provided [environment.yml](https://github.com/DCC-UAB/XNAP-Project/environment.yml) file has all the required dependencies. Run the following command: ``conda env create --file environment.yml `` to create a conda environment with all the required dependencies and then activate it:
@@ -35,10 +36,9 @@ python main.py
 ```
 
 
-
 ## Contributors
-- names
-- names
+- Put your name here
+- Put your name here
 - Júlia Garcia Torné (1630382@uab.cat)
 
 Xarxes Neuronals i Aprenentatge Profund
