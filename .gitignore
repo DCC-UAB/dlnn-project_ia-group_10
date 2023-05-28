@@ -135,3 +135,5 @@ environment_copy.yml
 config.yaml
 wandb
 features.pkl
+vm.ipynb
+dataset/features_densenet.pkl
