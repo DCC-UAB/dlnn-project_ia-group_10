@@ -17,20 +17,6 @@ Our code follows a structured organization to ensure clarity and maintainability
 
 ## Example Code
 
-we also need to change this:
-The given code is a simple CNN example training on the MNIST dataset. It shows how to set up the [Weights & Biases](https://wandb.ai/site)  package to monitor how your network is learning, or not.
-
-Before running the code you have to create a local environment with conda and activate it. The provided [environment.yml](https://github.com/DCC-UAB/XNAP-Project/environment.yml) file has all the required dependencies. Run the following command: ``conda env create --file environment.yml `` to create a conda environment with all the required dependencies and then activate it:
-```
-conda activate xnap-example
-```
-
-To run the example code:
-```
-python main.py
-```
-
-
 ## Contributors
 - Put your name here
 - Put your name here
