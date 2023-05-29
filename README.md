@@ -11,14 +11,9 @@ Our project focuses on implementing a CNN-RNN architecture for image captioning.
 ## Code structure
 Our code follows a structured organization to ensure clarity and maintainability. The project structure is as follows:
 
-- `data/`: This directory contains the datasets.......
-- `models/`: This directory contains....
-- `utils/`: This directory includes utility functions for data processing, evaluation metrics, etc...
-- `train.py`: This script is used to train the image captioning model.
-- `evaluate.py`: This script is used to evaluate the trained model on test data.
-- `demo.ipynb`: This Jupyter Notebook provides a step-by-step demonstration of the image captioning process.
-
-  we should modify this, i'm just making it look good :)
+- `data/`: This directory contains the datasets??
+- `models/`: This directory contains the weights of the models
+- `Fina Notebook.ipynb`: This notebook contains the steps followed in this project.
 
 ## Example Code
 
