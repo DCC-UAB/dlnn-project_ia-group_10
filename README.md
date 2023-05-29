@@ -35,6 +35,7 @@ Our code follows a structured organization to ensure clarity and maintainability
     - The LSTM network starts generating words after each input thus forming a sentence at the end.
 - Wandb for finetuning
     - We have used it hyperparameter tuning. Also found out that lr = 0.01 may actually be quite too high.
+    - Also found the importance of a LR scheduler.
 
 
 <img width="1068" alt="image" src="https://github.com/DCC-UAB/dlnn-project_ia-group_10/assets/72266259/3307909c-903d-431e-8c23-bc5e5d7d91fa">
