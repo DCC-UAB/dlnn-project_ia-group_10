@@ -33,7 +33,7 @@ from torch.utils.data import DataLoader
 dataloader = DataLoader(dataset, batch_size=1, shuffle=True) 
 
 # %%
-from train import train
+from archive.train import train
 
 # %%
 train(model,dataloader,epochs=50,lr=0.01)
