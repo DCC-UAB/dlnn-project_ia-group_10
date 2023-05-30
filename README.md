@@ -14,8 +14,10 @@ Our code follows a structured organization to ensure clarity and maintainability
 - `dataset/`: This directory contains the datasets, weights and .pkl files(such as the features precomputed) 
 - `models/`: This directory contains other aproaches that we have tried. This includes GPT2 for example.
 - `final_notebook_final.ipynb`: This notebook contains the steps followed in this project. It can be downloaded and run (a detailed description is offered inside the notebook).
+- `img/`: Just the images appearing in the notebook.
 - `utils/`: Leftover
 - `archive`: bunch of stuff/models we have tried and got to a dead end, considering the time limit or the logic behind them.
+- `out_of_contxt.zip`: File containing the additional data for validation purposes.
 
 ## Main functionalities and important takes
 - Data Exploration
