@@ -67,7 +67,7 @@ Interactive plot but for validation loss: https://wandb.ai/dl2023team/dlnn-proje
 We have also used BLEU metric to find the best caption-prediction pairs. Those are the top 15.
 
 ## Contributors
-- Put your name here
+- Josep Maria Rocafort (josem.rocafortf@gmail.com)
 - Eduard Hogea (eduard.hogea00@e-uvt.ro)
 - Júlia Garcia Torné (1630382@uab.cat)
 
