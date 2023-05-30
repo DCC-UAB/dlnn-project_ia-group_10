@@ -20,6 +20,7 @@ import numpy as np
 import os
 
 os.environ["TOKENIZERS_PARALLELISM"] = "False"
+os.environ["WANDB__EXECUTABLE"] = "/usr/bin/python3"
 
 
 ###SCRIPT CONFIG!####

@@ -8,6 +8,45 @@ RESNET18_EMB_DIM = 1000
 GPT2_HIDDEN_DIM = 768
 device = "mps"
 
+class AttentionBlock(nn.Module):
+    def __init__(self, key_dim, val_dim, query_dim, hidden_dim, num_heads,attnFCdim):
+        super(AttentionBlock, self).__init__()
+        self.key_gen = nn.Sequential(
+            nn.Linear(key_dim, attnFCdim),
+            nn.ReLU(),
+            nn.Linear(attnFCdim, attnFCdim),
+            nn.ReLU(),
+            nn.Linear(attnFCdim, hidden_dim),
+            nn.ReLU(),
+        )
+
+        self.val_gen = nn.Sequential(
+            nn.Linear(val_dim, attnFCdim),
+            nn.ReLU(),
+            nn.Linear(attnFCdim, attnFCdim),
+            nn.ReLU(),
+            nn.Linear(attnFCdim, hidden_dim),
+            nn.ReLU(),
+        )
+        
+        self.query_gen = nn.Sequential(
+            nn.Linear(query_dim, attnFCdim),
+            nn.ReLU(),
+            nn.Linear(attnFCdim, attnFCdim),
+            nn.ReLU(),
+            nn.Linear(attnFCdim, hidden_dim),
+            nn.Softmax(dim=-1),
+        )
+        self.multihead_attn = nn.MultiheadAttention(hidden_dim, num_heads, batch_first=True)
+    
+    def forward(self,keys,values,queries):
+        key = self.key_gen(keys) #generate key with FC key is directly the embedding
+        value = self.val_gen(values) #generate value with FC
+        query = self.query_gen(queries) #generate query with FC
+        output, _ =  self.multihead_attn(key=key, value=value, query=query)
+        return output
+
+
 class hacky_embedding(torch.nn.Module):
     def __init__(self,gpt2,batch_size):
         super(hacky_embedding, self).__init__()
@@ -35,6 +74,7 @@ class caption_generator(torch.nn.Module):
         self.resnet18.requires_grad = False
         self.TOKENS_PER_IMG = tokens_per_img
 
+        """
         #layers that convert the img features into embedding 
         self.imgfeat_to_gpt2emb = nn.Sequential(
             nn.Linear(RESNET18_EMB_DIM,10000),
@@ -43,7 +83,13 @@ class caption_generator(torch.nn.Module):
             nn.Linear(500*tokens_per_img,tokens_per_img*GPT2_HIDDEN_DIM),
             nn.ReLU(), #should I have this layer here? What is the range of values in gpt2 emb layer?
         )
-    
+        """
+        #instead of FC for translating attempt selfattention block
+        
+        self.imgfeat_to_gpt2emb = AttentionBlock(RESNET18_EMB_DIM, RESNET18_EMB_DIM, RESNET18_EMB_DIM, tokens_per_img*GPT2_HIDDEN_DIM, 4,int(RESNET18_EMB_DIM/2))
+        self.imgfeat_to_gpt2emb2 = AttentionBlock(tokens_per_img*GPT2_HIDDEN_DIM, tokens_per_img*GPT2_HIDDEN_DIM, tokens_per_img*GPT2_HIDDEN_DIM, tokens_per_img*GPT2_HIDDEN_DIM, 4,int(tokens_per_img*GPT2_HIDDEN_DIM/2))
+        self.imgfeat_to_gpt2emb3 = AttentionBlock(tokens_per_img*GPT2_HIDDEN_DIM, tokens_per_img*GPT2_HIDDEN_DIM, tokens_per_img*GPT2_HIDDEN_DIM, tokens_per_img*GPT2_HIDDEN_DIM, 4,int(tokens_per_img*GPT2_HIDDEN_DIM/2))
+
     def forward(self,img,train=True,caption=None):
         """
         Forward function of the caption_generator model class.
@@ -62,7 +108,11 @@ class caption_generator(torch.nn.Module):
         features = self.resnet18(img)
 
         #generate gpt2_embeddings
-        concat_embs = self.imgfeat_to_gpt2emb(features)
+        concat_embs1 = self.imgfeat_to_gpt2emb(features,features,features)
+        concat_embs2 = self.imgfeat_to_gpt2emb2(concat_embs1,concat_embs1,concat_embs1)
+        concat_embs2 += concat_embs1
+        concat_embs = self.imgfeat_to_gpt2emb3(concat_embs2,concat_embs2,concat_embs2)
+        concat_embs += concat_embs2
         
         img_emb = concat_embs[:,0:(1)*GPT2_HIDDEN_DIM].unsqueeze(1) #axis0 is batch
         for i in range(1,self.TOKENS_PER_IMG):
