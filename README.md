@@ -17,6 +17,7 @@ Our code follows a structured organization to ensure clarity and maintainability
 - `img/`: Just the images appearing in the notebook.
 - `utils/`: Leftover
 - `archive`: bunch of stuff/models we have tried and got to a dead end, considering the time limit or the logic behind them.
+- `out_of_contxt.zip`: File containing the additional data for validation purposes.
 
 ## Main functionalities and important takes
 - Data Exploration
