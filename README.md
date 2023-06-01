@@ -71,7 +71,7 @@ We have also used BLEU metric to find the best caption-prediction pairs. Those a
 - Eduard Hogea (eduard.hogea00@e-uvt.ro)
 - Júlia Garcia Torné (1630382@uab.cat)
 
-Xarxes Neuronals i Aprenentatge Profund,
+Fundamentals of Natural Language,
 Grau de Artificial Intelligence, 
 UAB, 2023
 
