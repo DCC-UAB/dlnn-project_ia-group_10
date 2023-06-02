@@ -75,3 +75,4 @@ Xarxes Neuronals i Aprenentatge Profund,
 Grau de Artificial Intelligence, 
 UAB, 2023
 
+
